@@ -1,0 +1,20 @@
+Metadata-Version: 2.4
+Name: nysummit-agents
+Version: 0.1.0
+Summary: Multi-framework customer support agent demo for NY Summit
+Requires-Python: >=3.11
+Requires-Dist: langgraph>=0.4.0
+Requires-Dist: langchain-openai>=0.3.0
+Requires-Dist: langchain-aws>=0.2.0
+Requires-Dist: opentelemetry-api>=1.20.0
+Requires-Dist: opentelemetry-sdk>=1.20.0
+Requires-Dist: opentelemetry-exporter-otlp>=1.20.0
+Requires-Dist: crewai>=0.100.0
+Requires-Dist: strands-agents>=0.1.0
+Requires-Dist: strands-agents-tools>=0.1.0
+Requires-Dist: bedrock-agentcore>=0.1.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: pydantic>=2.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: langgraph-cli>=0.1.0; extra == "dev"

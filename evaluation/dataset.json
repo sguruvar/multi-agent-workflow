@@ -1,0 +1,77 @@
+[
+  {
+    "input": "Where is my order ORD-1001?",
+    "expected_intent": "order_status",
+    "expected_contains": ["shipped", "1Z999AA10123456784"]
+  },
+  {
+    "input": "What's the status of ORD-1002?",
+    "expected_intent": "order_status",
+    "expected_contains": ["processing"]
+  },
+  {
+    "input": "I want a refund for ORD-1003",
+    "expected_intent": "billing",
+    "expected_contains": ["refund"]
+  },
+  {
+    "input": "What's my account balance? My customer ID is CUST-100",
+    "expected_intent": "billing",
+    "expected_contains": ["24.99"]
+  },
+  {
+    "input": "Can I get a refund for ORD-1004?",
+    "expected_intent": "billing",
+    "expected_contains": ["refund"]
+  },
+  {
+    "input": "My device won't turn on",
+    "expected_intent": "tech_support",
+    "expected_contains": ["power button", "10 seconds"]
+  },
+  {
+    "input": "Bluetooth isn't connecting to my headphones",
+    "expected_intent": "tech_support",
+    "expected_contains": ["forget", "re-pair"]
+  },
+  {
+    "input": "My screen is flickering badly",
+    "expected_intent": "tech_support",
+    "expected_contains": ["firmware", "update"]
+  },
+  {
+    "input": "Battery is draining really fast on my watch",
+    "expected_intent": "tech_support",
+    "expected_contains": ["background"]
+  },
+  {
+    "input": "Hi there, what services do you offer?",
+    "expected_intent": "general",
+    "expected_contains": []
+  },
+  {
+    "input": "My wifi keeps dropping every few minutes",
+    "expected_intent": "tech_support",
+    "expected_contains": ["router", "restart"]
+  },
+  {
+    "input": "The TechMart app crashes when I open it",
+    "expected_intent": "tech_support",
+    "expected_contains": ["cache", "clear"]
+  },
+  {
+    "input": "I need to check on order ORD-1001 and also get a refund for ORD-1003",
+    "expected_intent": "order_status",
+    "expected_contains": ["ORD-1001"]
+  },
+  {
+    "input": "How much credit do I have? I'm customer CUST-102",
+    "expected_intent": "billing",
+    "expected_contains": ["149.99"]
+  },
+  {
+    "input": "Hello!",
+    "expected_intent": "general",
+    "expected_contains": []
+  }
+]

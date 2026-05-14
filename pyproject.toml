@@ -1,0 +1,25 @@
+[project]
+name = "nysummit-agents"
+version = "0.1.0"
+description = "Multi-framework customer support agent demo for NY Summit"
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph>=0.4.0",
+    "langchain-openai>=0.3.0",
+    "langchain-aws>=0.2.0",
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+    "opentelemetry-exporter-otlp>=1.20.0",
+    "crewai>=0.100.0",
+    "strands-agents>=0.1.0",
+    "strands-agents-tools>=0.1.0",
+    "bedrock-agentcore>=0.1.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "langgraph-cli>=0.1.0",
+]
