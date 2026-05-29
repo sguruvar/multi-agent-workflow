@@ -1,8 +1,15 @@
-"""Standalone runner for quick testing with session memory."""
+"""Standalone runner — demonstrates the multi-agent system with session memory.
+
+Usage:
+    python -m src.main
+"""
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+from .telemetry import get_tracer
+get_tracer()
 
 from langchain_core.messages import HumanMessage
 from .agents.supervisor import supervisor_graph
@@ -41,6 +48,7 @@ SESSIONS = [
 def main():
     print("=" * 60)
     print("TechMart Customer Support - Multi-Agent Demo")
+    print("Frameworks: LangGraph (supervisor) + CrewAI + Strands SDK")
     print("=" * 60)
 
     for session in SESSIONS:
@@ -66,7 +74,9 @@ def main():
             print(f"  Agent: {response[:200]}{'...' if len(response) > 200 else ''}")
 
     print(f"\n{'━' * 60}")
-    print("All sessions complete. Check traces in Omni / CloudWatch.")
+    print("All sessions complete.")
+    print("Traces + metrics exported to configured OTEL endpoint.")
+    print("Check: CloudWatch > GenAI Dashboard | PromQL Query Studio")
 
 
 if __name__ == "__main__":

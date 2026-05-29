@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from . import tracing  # noqa: F401 — must initialize before framework imports
+from .telemetry import get_tracer as _init_telemetry
+_init_telemetry()
 
 from .agents.supervisor import supervisor_graph
 

@@ -1,35 +1,67 @@
-"""AgentCore Runtime wrapper for deploying to Bedrock AgentCore."""
+"""FastAPI entry point for EKS deployment.
+
+Run with: uvicorn src.agentcore_app:app --host 0.0.0.0 --port 8080
+Or via OTEL: opentelemetry-instrument uvicorn src.agentcore_app:app --host 0.0.0.0 --port 8080
+"""
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
+from fastapi import FastAPI
+from pydantic import BaseModel
 from langchain_core.messages import HumanMessage
-from bedrock_agentcore.runtime import BedrockAgentCoreApp
 
-from .agents.supervisor import supervisor_graph
 from .telemetry import get_tracer
+from .agents.supervisor import supervisor_graph
+from .metrics import active_sessions_gauge
 
-app = BedrockAgentCoreApp()
+get_tracer()
+
+app = FastAPI(title="TechMart Customer Support", version="0.1.0")
 
 
-@app.entrypoint
-async def invoke(payload):
+class InvokeRequest(BaseModel):
+    prompt: str = "Hi, I need help"
+    session_id: str = "default"
+
+
+class InvokeResponse(BaseModel):
+    result: str
+    intent: str
+    session_id: str
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.post("/invoke", response_model=InvokeResponse)
+async def invoke(request: InvokeRequest):
     tracer = get_tracer()
-    with tracer.start_as_current_span("customer_support_invoke") as span:
-        user_message = payload.get("prompt", "Hi, I need help")
-        span.set_attribute("user.message", user_message)
+    active_sessions_gauge.add(1)
 
-        result = supervisor_graph.invoke(
-            {"messages": [HumanMessage(content=user_message)]}
-        )
+    try:
+        with tracer.start_as_current_span("customer_support.invoke") as span:
+            span.set_attribute("session.id", request.session_id)
+            span.set_attribute("user.message_length", len(request.prompt))
 
-        response = result["messages"][-1].content
-        span.set_attribute("agent.response_length", len(response))
-        span.set_attribute("agent.intent", result.get("intent", "unknown"))
+            config = {"configurable": {"thread_id": request.session_id}}
 
-        return {"result": response}
+            result = supervisor_graph.invoke(
+                {"messages": [HumanMessage(content=request.prompt)]},
+                config=config,
+            )
 
+            response = result["messages"][-1].content
+            intent = result.get("intent", "unknown")
 
-if __name__ == "__main__":
-    app.run()
+            span.set_attribute("agent.intent", intent)
+            span.set_attribute("agent.response_length", len(response))
+
+            return InvokeResponse(
+                result=response, intent=intent, session_id=request.session_id
+            )
+    finally:
+        active_sessions_gauge.add(-1)

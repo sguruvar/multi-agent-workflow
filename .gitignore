@@ -1,6 +1,6 @@
-.omni/
 .env
 __pycache__/
 *.pyc
 .venv/
-evaluation/eval_results.json
+*.egg-info/
+.claude/
