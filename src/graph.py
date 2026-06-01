@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from .telemetry import get_tracer as _init_telemetry
-_init_telemetry()
+from .telemetry import setup_telemetry
+setup_telemetry()
 
 from .agents.supervisor import supervisor_graph
 

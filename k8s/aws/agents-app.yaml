@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agents-app
+  namespace: agents
+  labels:
+    app: agents-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agents-app
+  template:
+    metadata:
+      labels:
+        app: agents-app
+    spec:
+      serviceAccountName: agents-app
+      containers:
+        - name: agents-app
+          image: "${ECR_APP_URL}:latest"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: LLM_PROVIDER
+              value: "bedrock"
+            - name: AWS_REGION
+              value: "${AWS_REGION}"
+            - name: BEDROCK_MODEL
+              value: "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+            - name: OTEL_SERVICE_NAME
+              value: "customer-support-agent"
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: "grpc"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.agents.svc.cluster.local:4317"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agents-app
+  namespace: agents
+spec:
+  type: ClusterIP
+  selector:
+    app: agents-app
+  ports:
+    - port: 8080
+      targetPort: 8080

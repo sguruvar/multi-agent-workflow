@@ -1,5 +1,5 @@
 [project]
-name = "nysummit-agents"
+name = "customer-support-agent"
 version = "0.1.0"
 description = "Multi-agent customer support system with full observability"
 requires-python = ">=3.11"

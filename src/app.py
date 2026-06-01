@@ -1,24 +1,29 @@
 """FastAPI entry point for EKS deployment.
 
-Run with: uvicorn src.agentcore_app:app --host 0.0.0.0 --port 8080
-Or via OTEL: opentelemetry-instrument uvicorn src.agentcore_app:app --host 0.0.0.0 --port 8080
+Run with: uvicorn src.app:app --host 0.0.0.0 --port 8080
 """
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI
+# MUST initialize telemetry BEFORE importing agents (they register instrumentors)
+from .telemetry import setup_telemetry
+setup_telemetry()
+
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
+from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
 from langchain_core.messages import HumanMessage
 
-from .telemetry import get_tracer
 from .agents.supervisor import supervisor_graph
-from .metrics import active_sessions_gauge
-
-get_tracer()
+from .metrics import active_sessions_gauge, record_http_request
+from .telemetry import get_tracer
 
 app = FastAPI(title="TechMart Customer Support", version="0.1.0")
+_executor = ThreadPoolExecutor(max_workers=4)
 
 
 class InvokeRequest(BaseModel):
@@ -32,9 +37,25 @@ class InvokeResponse(BaseModel):
     session_id: str
 
 
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    response: Response = await call_next(request)
+    record_http_request(request.url.path, response.status_code)
+    return response
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+def _invoke_sync(prompt: str, session_id: str):
+    config = {"configurable": {"thread_id": session_id}}
+    result = supervisor_graph.invoke(
+        {"messages": [HumanMessage(content=prompt)]},
+        config=config,
+    )
+    return result
 
 
 @app.post("/invoke", response_model=InvokeResponse)
@@ -47,11 +68,9 @@ async def invoke(request: InvokeRequest):
             span.set_attribute("session.id", request.session_id)
             span.set_attribute("user.message_length", len(request.prompt))
 
-            config = {"configurable": {"thread_id": request.session_id}}
-
-            result = supervisor_graph.invoke(
-                {"messages": [HumanMessage(content=request.prompt)]},
-                config=config,
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(
+                _executor, _invoke_sync, request.prompt, request.session_id
             )
 
             response = result["messages"][-1].content

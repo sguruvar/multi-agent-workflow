@@ -3,11 +3,11 @@
 from opentelemetry import trace
 from strands import Agent, tool
 
-from ..models import get_strands_model
+from ..models import get_strands_model, set_current_agent
 from ..metrics import track_tool_duration, record_escalation
 from ..tools.kb_tools import search_kb
 
-tracer = trace.get_tracer("nysummit-agents.tech_support")
+tracer = trace.get_tracer("customer-support-agent.tech_support")
 
 
 @tool
@@ -30,20 +30,16 @@ When a customer describes a problem:
 
 Keep responses concise and empathetic."""
 
-model = get_strands_model()
-
-tech_support = Agent(
-    model=model,
-    system_prompt=SYSTEM_PROMPT,
-    tools=[search_knowledge_base],
-)
-
-
 def run_tech_support_agent(query: str) -> str:
     """Execute the tech support agent with a customer query."""
+    set_current_agent("tech_support")
     with tracer.start_as_current_span("strands.tech_support_agent") as span:
         span.set_attribute("agent.name", "tech_support")
         span.set_attribute("agent.framework", "strands")
-        result = tech_support(query)
-        output = str(result)
-        return output
+        agent = Agent(
+            model=get_strands_model(),
+            system_prompt=SYSTEM_PROMPT,
+            tools=[search_knowledge_base],
+        )
+        result = agent(query)
+        return str(result)

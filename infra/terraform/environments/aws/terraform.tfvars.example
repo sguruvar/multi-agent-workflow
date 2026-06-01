@@ -1,0 +1,4 @@
+aws_region  = "us-east-1"
+aws_profile = "default"
+vpc_id      = "vpc-xxxxxxxxxxxxxxxxx"
+subnet_ids  = ["subnet-xxxxxxxxxxxxxxxxx", "subnet-xxxxxxxxxxxxxxxxx"]

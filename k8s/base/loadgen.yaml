@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgen
+  namespace: agents
+  labels:
+    app: loadgen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loadgen
+  template:
+    metadata:
+      labels:
+        app: loadgen
+    spec:
+      containers:
+        - name: loadgen
+          image: loadgen:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TARGET_URL
+              value: "http://agents-app.agents.svc.cluster.local:8080"
+            - name: LOAD_RPS
+              value: "1"
+            - name: LOAD_DURATION
+              value: "0"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"

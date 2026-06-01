@@ -5,7 +5,7 @@ import os
 from crewai import Agent, Task, Crew, LLM
 from crewai.tools import tool as crewai_tool
 
-from ..models import get_crewai_model_name
+from ..models import get_crewai_model_name, set_current_agent
 from ..tools.billing_tools import check_balance, process_refund
 
 
@@ -21,32 +21,30 @@ def process_customer_refund(order_id: str) -> str:
     return process_refund(order_id)
 
 
-llm = LLM(
-    model=get_crewai_model_name(),
-    region_name=os.getenv("AWS_REGION", "us-east-1"),
-)
-
-billing_specialist = Agent(
-    role="Billing Specialist",
-    goal="Help customers with billing inquiries, balance checks, and refund processing",
-    backstory=(
-        "You are a billing specialist at TechMart. You handle account balance inquiries "
-        "and process refunds. You are friendly, efficient, and always confirm actions "
-        "before processing. Keep responses concise."
-    ),
-    tools=[check_customer_balance, process_customer_refund],
-    llm=llm,
-    verbose=False,
-)
-
-
 def run_billing_agent(query: str) -> str:
     """Execute the billing agent with a customer query."""
+    set_current_agent("billing")
+    llm = LLM(
+        model=get_crewai_model_name(),
+        region_name=os.getenv("AWS_REGION", "us-east-1"),
+    )
+    agent = Agent(
+        role="Billing Specialist",
+        goal="Help customers with billing inquiries, balance checks, and refund processing",
+        backstory=(
+            "You are a billing specialist at TechMart. You handle account balance inquiries "
+            "and process refunds. You are friendly, efficient, and always confirm actions "
+            "before processing. Keep responses concise."
+        ),
+        tools=[check_customer_balance, process_customer_refund],
+        llm=llm,
+        verbose=False,
+    )
     task = Task(
         description=f"Handle this customer billing request: {query}",
         expected_output="A clear, helpful response addressing the customer's billing concern.",
-        agent=billing_specialist,
+        agent=agent,
     )
-    crew = Crew(agents=[billing_specialist], tasks=[task], verbose=False)
+    crew = Crew(agents=[agent], tasks=[task], verbose=False)
     result = crew.kickoff()
     return str(result)

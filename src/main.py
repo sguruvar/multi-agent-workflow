@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from .telemetry import get_tracer
-get_tracer()
+from .telemetry import setup_telemetry
+setup_telemetry()
 
 from langchain_core.messages import HumanMessage
 from .agents.supervisor import supervisor_graph
@@ -76,7 +76,6 @@ def main():
     print(f"\n{'━' * 60}")
     print("All sessions complete.")
     print("Traces + metrics exported to configured OTEL endpoint.")
-    print("Check: CloudWatch > GenAI Dashboard | PromQL Query Studio")
 
 
 if __name__ == "__main__":

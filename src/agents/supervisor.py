@@ -8,13 +8,13 @@ from langgraph.checkpoint.memory import MemorySaver
 from opentelemetry import trace
 from pydantic import BaseModel, Field
 
-from ..models import get_chat_model
+from ..models import get_chat_model, set_current_agent
 from ..metrics import record_intent, track_agent_duration
 from .order_agent import order_agent
 from .billing_agent import run_billing_agent
 from .tech_support_agent import run_tech_support_agent
 
-tracer = trace.get_tracer("nysummit-agents.supervisor")
+tracer = trace.get_tracer("customer-support-agent.supervisor")
 
 
 class SupervisorState(MessagesState):
@@ -44,6 +44,7 @@ responder = get_chat_model(temperature=0.3)
 
 
 def classify_intent(state: SupervisorState):
+    set_current_agent("general")
     with tracer.start_as_current_span("classify_intent") as span:
         last_message = state["messages"][-1]
         messages = [SystemMessage(content=CLASSIFIER_PROMPT), last_message]
@@ -59,6 +60,7 @@ def route_by_intent(state: SupervisorState) -> Literal["order_status", "billing"
 
 
 def handle_order_status(state: SupervisorState):
+    set_current_agent("order_status")
     with track_agent_duration("order_status", "order_status"):
         result = order_agent.invoke({"messages": state["messages"]})
         response = result["messages"][-1]
@@ -66,6 +68,7 @@ def handle_order_status(state: SupervisorState):
 
 
 def handle_billing(state: SupervisorState):
+    set_current_agent("billing")
     with track_agent_duration("billing", "billing"):
         last_message = state["messages"][-1]
         query = last_message.content if hasattr(last_message, "content") else str(last_message)
@@ -74,6 +77,7 @@ def handle_billing(state: SupervisorState):
 
 
 def handle_tech_support(state: SupervisorState):
+    set_current_agent("tech_support")
     with track_agent_duration("tech_support", "tech_support"):
         last_message = state["messages"][-1]
         query = last_message.content if hasattr(last_message, "content") else str(last_message)
@@ -82,6 +86,7 @@ def handle_tech_support(state: SupervisorState):
 
 
 def handle_general(state: SupervisorState):
+    set_current_agent("general")
     with track_agent_duration("general", "general"):
         messages = [
             SystemMessage(content="You are a friendly TechMart customer support agent. For general queries, provide a helpful response and let the customer know you can help with order tracking, billing, and technical support."),

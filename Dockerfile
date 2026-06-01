@@ -2,6 +2,7 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir --upgrade pip
 
 COPY pyproject.toml .
@@ -11,12 +12,8 @@ RUN pip install --no-cache-dir .
 
 EXPOSE 8080
 
-ENV OTEL_PYTHON_DISTRO=opentelemetry_distro
-ENV OTEL_PYTHON_CONFIGURATOR=opentelemetry_configurator
-ENV OTEL_METRICS_EXPORTER=otlp
-ENV OTEL_TRACES_EXPORTER=otlp
 ENV OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-ENV OTEL_SERVICE_NAME=nysummit-agents
+ENV OTEL_SERVICE_NAME=customer-support-agent
 
-CMD ["opentelemetry-instrument", "uvicorn", "src.agentcore_app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8080"]
