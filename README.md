@@ -9,6 +9,7 @@ drove cost, which tool call added latency, or which LLM invocation failed.
 This platform instruments all three frameworks without modifying agent code.
 
 ## Architecture
+```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  EKS Cluster                                                             │
 │                                                                          │
@@ -43,7 +44,7 @@ This platform instruments all three frameworks without modifying agent code.
                                               │                           │
                                               │  SigV4 remote_write       │
                                               └──────────────────────────┘
-      DCGM + OTel Collector → AMP → Grafana Tempo → per-agent cost dashboard
+```
 
 ## Key components
 - boto3 interceptor for Bedrock token attribution (framework-agnostic)
