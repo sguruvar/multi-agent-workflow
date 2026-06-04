@@ -53,4 +53,4 @@ This platform instruments all three frameworks without modifying agent code.
 - EKS + Terraform deployment (Karpenter auto-provisioning)
 
 ## Article
-[Medium deep dive] (https://medium.com/@sivagurunath/end-to-end-observability-for-multi-agent-ai-systems-on-kubernetes-e4133dd111d6)
+[Medium deep dive](https://medium.com/@sivagurunath/end-to-end-observability-for-multi-agent-ai-systems-on-kubernetes-e4133dd111d6)
